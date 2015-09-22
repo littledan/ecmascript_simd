@@ -709,10 +709,9 @@ The second option:
 </emu-clause>
 
 <emu-clause id="simd-load-from-tarray" aoid="SIMDLoadFromTypedArray">
-<h1>SIMDLoadFromTypedArray( tarray, index, descriptor [, length] )</h1>
+<h1>SIMDLoadFromTypedArray( tarray, index, descriptor, length )</h1>
 <emu-alg>
 1. If _tarray_ does not have a [[ViewedArrayBuffer]] internal slot, throw a TypeError exception.
-1. If _length_ is not provided, let _length_ be _descriptor_.[[VectorLength]]. Otherwise, assert _length_ &le; _descriptor_.[[VectorLength]].
 1. If IsDetachedBuffer(_tarray_.[[ViewedArrayBuffer]]) is *true*, throw a TypeError exception.
 1. Let _block_ be _tarray_.[[ViewedArrayBuffer]].[[ArrayBufferData]]
 1. If _index_ &ne; ToLength(_index_), throw a TypeError exception.
@@ -735,10 +734,9 @@ The second option:
 </emu-clause>
 
 <emu-clause id="simd-store-in-tarray" aoid="SIMDStoreInTypedArray">
-<h1>SIMDStoreInTypedArray( tarray, index, descriptor, n [, length] )</h1>
+<h1>SIMDStoreInTypedArray( tarray, index, descriptor, n, length )</h1>
 <emu-alg>
 1. If _n_.[[SIMDTypeDescriptor]] is not _SIMD_Descriptor, throw a TypeError exception.
-1. If _length_ is not provided, let _length_ be _descriptor_.[[VectorLength]]. Otherwise, assert _length_ &le; _descriptor_.[[VectorLength]].
 1. If IsDetachedBuffer(_tarray_.[[ViewedArrayBuffer]]) is *true*, throw a TypeError exception.
 1. If _tarray_ does not have a [[ViewedArrayBuffer]] field, throw a TypeError exception.
 1. Let _block_ be _tarray_.[[ViewedArrayBuffer]].[[ArrayBufferData]]
@@ -1413,86 +1411,33 @@ On <a href="#simd-signed-integer-type">signed</a> SIMD types, the following defi
 </emu-clause>
 
 <emu-clause id="simd-store-function">
-<h1>_SIMD_Constructor.store( tarray, index, simd )</h1>
+<h1>_SIMD_Constructor.store( tarray, index, simd [, width ] )</h1>
 <p>This is defined when _SIMD_Descriptor has a [[SerializeElement]] field.</p>
 
 This operation exists only on integer and floating point SIMD types.
 
 <emu-alg>
-1. Return SIMDStoreInTypedArray(_tarray_, _index_, _SIMD_Descriptor, _simd_).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-store1">
-<h1>_SIMD_Constructor.store1( tarray, index, simd )</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4, and when _SIMD_Descriptor has a [[SerializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-
-<emu-alg>
-1. Return SIMDStoreInTypedArray(_tarray_, _index_, _SIMD_Descriptor, _simd_, 1).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-store2">
-<h1>_SIMD_Constructor.store2( tarray, index, simd )</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4, and when _SIMD_Descriptor has a [[SerializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-<emu-alg>
-1. Return SIMDStoreInTypedArray(_tarray_, _index_, _SIMD_Descriptor, _simd_, 2).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-store3">
-<h1>_SIMD_Constructor.store3( tarray, index, simd )</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4, and when _SIMD_Descriptor has a [[SerializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-<emu-alg>
-1. Return SIMDStoreInTypedArray(_tarray_, _index_, _SIMD_Descriptor, _simd_, 3).
+1. If the _width_ argument was provided,
+   1. Let _lanes_ = SIMDToLane(_width_).
+   1. ReturnIfAbrupt(_lanes_).
+1. Otherwise, let _lanes_ be _SIMD_Descriptor.[[VectorLength]].
+1. Return SIMDStoreInTypedArray(_tarray_, _index_, _SIMD_Descriptor, _simd_, _width_).
 </emu-alg>
 </emu-clause>
 
 <emu-clause id="simd-load-function">
-<h1>_SIMD_Constructor.load( tarray, index )</h1>
+<h1>_SIMD_Constructor.load( tarray, index [, width ] )</h1>
 <p>This function is defined only on SIMD types where _SIMD_Descriptor has a [[DeserializeElement]] field.</p>
 
 This operation exists only on integer and floating point SIMD types.
 
 <emu-note>`load` takes a TypedArray of any element type as an argument. One way to use it is to pass in a `Uint8Array` regardless of SIMD type, which is useful because it allows the compiler to eliminate the shift in going from the index to the pointer offset. Other options considered were to use an ArrayBuffer (but this is not idiomatic, to take an ArrayBuffer directly as an argument to read off of) or a DataView (but DataViews don't tend to expose platform-dependent endianness, which is important here, and they tend to use methods on `DataView.prototype`, which are harder to optimize in an asm.js context).</emu-note>
 <emu-alg>
-1. Return SIMDLoadFromTypedArray(_tarray_, _index_, _SIMD_Descriptor).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-load1">
-<h1>_SIMD_Constructor.load1(tarray, index)</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4 and _SIMD_Descriptor has a [[DeserializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-<emu-alg>
-1. Return SIMDLoadFromTypedArray(_tarray_, _index_, _SIMD_Descriptor, 1).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-load2">
-<h1>_SIMD_Constructor.load2(tarray, index)</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4 and _SIMD_Descriptor has a [[DeserializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-<emu-alg>
-1. Return SIMDLoadFromTypedArray(_tarray_, _index_, _SIMD_Descriptor, 2).
-</emu-alg>
-</emu-clause>
-
-<emu-clause id="simd-load3">
-<h1>_SIMD_Constructor.load3(tarray, index)</h1>
-<p>This function is defined only on SIMD types where _SIMD_Descriptor.[[VectorLength]] = 4 and _SIMD_Descriptor has a [[DeserializeElement]] field.</p>
-
-This operation exists only on integer and floating point SIMD types.
-<emu-alg>
-1. Return SIMDLoadFromTypedArray(_tarray_, _index_, _SIMD_Descriptor, 3).
+1. If the _width_ argument was provided,
+   1. Let _lanes_ = SIMDToLane(_width_).
+   1. ReturnIfAbrupt(_lanes_).
+1. Otherwise, let _lanes_ be _SIMD_Descriptor.[[VectorLength]].
+1. Return SIMDLoadFromTypedArray(_tarray_, _index_, _SIMD_Descriptor, _lanes_).
 </emu-alg>
 </emu-clause>
 
